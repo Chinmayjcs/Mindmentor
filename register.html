@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="./StyleSheets/register.css">
+    <script>
+        function toggleFields() {
+            const accountType = document.getElementById("account-type").value;
+            document.getElementById("psychologist-fields").style.display = accountType === "psychologist" ? "block" : "none";
+            document.getElementById("admin-passkey-field").style.display = accountType === "admin" ? "block" : "none";
+            document.getElementById("error-message").textContent = "";
+        }
+
+        function validateForm() {
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+            const accountType = document.getElementById("account-type").value;
+            const adminPasskey = document.getElementById("admin-passkey").value;
+            const errorMessage = document.getElementById("error-message");
+
+            if (password.length < 8) {
+                errorMessage.textContent = "Password must be at least 8 characters.";
+                return false;
+            }
+            if (password !== confirmPassword) {
+                errorMessage.textContent = "Passwords do not match.";
+                return false;
+            }
+            if (accountType === "admin" && adminPasskey !== "CJ17") {
+                errorMessage.textContent = "INVALID PASSKEY";
+                return false;
+            }
+            return true;
+        }
+
+        async function submitForm(event) {
+            event.preventDefault();
+            if (!validateForm()) return;
+
+            const formData = new FormData(document.getElementById("registerForm"));
+            const formObj = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch("http://127.0.0.1:3000/register.html", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formObj),
+                });
+
+                if (response.ok) {
+                    alert("Registration successful!");
+                    window.location.href = "login.html?message=Registration successful!";
+                } else {
+                    throw new Error("Registration failed");
+                }
+            } catch (error) {
+                document.getElementById("error-message").textContent = "Registration failed. Please try again.";
+            }
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Register</h1>
+    </header>
+    <main>
+        <form id="registerForm" onsubmit="submitForm(event)">
+            <label for="account-type">Account Type:</label>
+            <select id="account-type" name="account-type" onchange="toggleFields()" required>
+                <option value="user">User</option>
+                <option value="psychologist">Certified Psychologist</option>
+                <option value="admin">Admin</option>
+            </select>
+
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="confirm-password">Confirm Password:</label>
+            <input type="password" id="confirm-password" name="confirm-password" required>
+
+            <div id="admin-passkey-field" style="display: none;">
+                <label for="admin-passkey">Admin Passkey:</label>
+                <input type="text" id="admin-passkey" name="admin-passkey">
+            </div>
+
+            <div id="psychologist-fields" style="display: none;">
+                <label for="degree-upload">Degree (Psychology):</label>
+                <input type="file" id="degree-upload" name="degree-upload" accept="image/*">
+                <label for="rci-upload">RCI Certificate (Optional):</label>
+                <input type="file" id="rci-upload" name="rci-upload" accept="image/*">
+                <label for="rci-number">RCI Number (Optional):</label>
+                <input type="text" id="rci-number" name="rci-number">
+                <label for="professional-org">Professional Organization Member?</label>
+                <select id="professional-org" name="professional-org" required>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+
+            <div id="error-message" style="color: red;"></div>
+            <button type="submit">Register</button>
+        </form>
+        <p>Already have an account? <a href="login.html">Login here</a></p>
+    </main>
+    <footer>
+        <p>&copy; 2024 Mental Health Platform. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>
